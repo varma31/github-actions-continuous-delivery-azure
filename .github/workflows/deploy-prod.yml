@@ -1,8 +1,13 @@
 name: Production deployment
+
+on: 
+  push:
+    branches:
+      - main
+
 env:
-  AZURE_RESOURCE_GROUP: cd-with-actions
-  AZURE_APP_PLAN: actions-ttt-deployment
-  AZURE_LOCATION: '"Central US"'
+  DOCKER_IMAGE_NAME: varma31-azure-ttt # Must not exist as a package associated with a different repo!
+  IMAGE_REGISTRY_URL: docker.pkg.github.com
   #################################################
   ### USER PROVIDED VALUES ARE REQUIRED BELOW   ###
   #################################################
@@ -11,15 +16,10 @@ env:
   AZURE_WEBAPP_NAME: varma31-ttt-app
   #################################################
 
-on:
-  push:
-    branches:
-      - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v1
       - name: npm install and build webpack
@@ -30,26 +30,27 @@ jobs:
         with:
           name: webpack artifacts
           path: public/
-    
+
   Build-Docker-Image:
     runs-on: ubuntu-latest
     needs: build
-    name: Build image and store in GitHub packages
+    name: Build image and store in GitHub Packages
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-        
-      - name: Download built artifacts
+
+      - name: Download built artifact
         uses: actions/download-artifact@main
         with:
           name: webpack artifacts
           path: public
-          
-      - name: create image and store in packages
+
+      - name: create image and store in Packages
         uses: mattdavis0351/actions/docker-gpr@1.3.0
         with:
           repo-token: ${{secrets.GITHUB_TOKEN}}
-          image-name: ${{env.DOCKER_IMAGE_NAME}}    
+          image-name: ${{env.DOCKER_IMAGE_NAME}}
+
   Deploy-to-Azure:
     runs-on: ubuntu-latest
     needs: Build-Docker-Image
