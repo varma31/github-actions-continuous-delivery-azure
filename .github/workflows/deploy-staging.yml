@@ -2,7 +2,7 @@ name: Stage the app
 
 on: 
   pull_request:
-    type: [labeled]
-job:
+    types: [labeled]
+jobs:
   build:
     runs-on: ubuntu-latest
